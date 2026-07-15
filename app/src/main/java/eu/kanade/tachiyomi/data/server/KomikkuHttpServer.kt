@@ -162,7 +162,7 @@ class KomikkuHttpServer(
 
         // Try cache first, then fetch from source
         val pages = try {
-            chapterCache.getPageListFromCache(sChapter)
+            chapterCache.getPageListFromCache(chapter)
         } catch (_: Exception) {
             try {
                 source.getPageList(sChapter)
@@ -176,7 +176,7 @@ class KomikkuHttpServer(
 
         // Cache the page list
         try {
-            chapterCache.putPageListToCache(sChapter, pages)
+            chapterCache.putPageListToCache(chapter, pages)
         } catch (_: Exception) { /* ignore */ }
 
         val response = pages.map { page ->
