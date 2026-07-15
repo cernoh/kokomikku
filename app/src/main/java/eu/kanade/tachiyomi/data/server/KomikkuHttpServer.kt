@@ -1,11 +1,13 @@
 package eu.kanade.tachiyomi.data.server
 
 import android.content.Context
+import eu.kanade.domain.chapter.model.toSChapter
 import eu.kanade.tachiyomi.data.cache.ChapterCache
 import eu.kanade.tachiyomi.data.cache.CoverCache
 import eu.kanade.tachiyomi.source.model.Page
 import eu.kanade.tachiyomi.source.online.HttpSource
 import fi.iki.elonen.NanoHTTPD
+import fi.iki.elonen.NanoHTTPD.Response.Status
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
@@ -21,6 +23,7 @@ import timber.log.Timber
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
 import java.io.ByteArrayInputStream
+import java.io.File
 import java.io.FileInputStream
 import java.util.Date
 
@@ -148,6 +151,7 @@ class KomikkuHttpServer(
         val chapterId = extractId(uri, 4)
         val chapter = chapterRepository.getChapterById(chapterId)
             ?: return@runBlocking jsonResponse(Status.NOT_FOUND, """{"error":"chapter not found"}""")
+        val sChapter = chapter.toSChapter()
 
         val manga = mangaRepository.getMangaById(chapter.mangaId)
         val source = sourceManager.get(manga.source) as? HttpSource
@@ -158,10 +162,10 @@ class KomikkuHttpServer(
 
         // Try cache first, then fetch from source
         val pages = try {
-            chapterCache.getPageListFromCache(chapter)
+            chapterCache.getPageListFromCache(sChapter)
         } catch (_: Exception) {
             try {
-                source.getPageList(chapter)
+                source.getPageList(sChapter)
             } catch (e: Exception) {
                 return@runBlocking jsonResponse(
                     Status.INTERNAL_ERROR,
@@ -172,7 +176,7 @@ class KomikkuHttpServer(
 
         // Cache the page list
         try {
-            chapterCache.putPageListToCache(chapter, pages)
+            chapterCache.putPageListToCache(sChapter, pages)
         } catch (_: Exception) { /* ignore */ }
 
         val response = pages.map { page ->
@@ -189,29 +193,29 @@ class KomikkuHttpServer(
     // Proxies a page image through the server so the client doesn't need
     // source-specific headers. Query params: url (image URL), sourceId (source key).
 
-    private fun serveImage(session: IHTTPSession): Response {
+    private fun serveImage(session: IHTTPSession): Response = runBlocking {
         val imageUrl = session.parms["url"]
-            ?: return jsonResponse(Status.BAD_REQUEST, """{"error":"missing url parameter"}""")
+            ?: return@runBlocking jsonResponse(Status.BAD_REQUEST, """{"error":"missing url parameter"}""")
         val sourceId = session.parms["sourceId"]?.toLongOrNull()
-            ?: return jsonResponse(Status.BAD_REQUEST, """{"error":"missing sourceId parameter"}""")
+            ?: return@runBlocking jsonResponse(Status.BAD_REQUEST, """{"error":"missing sourceId parameter"}""")
 
         // Check cache first
         if (chapterCache.isImageInCache(imageUrl)) {
             val file = chapterCache.getImageFile(imageUrl)
             if (file.exists()) {
-                return newChunkedResponse(Status.OK, guessMimeType(file), FileInputStream(file))
+                return@runBlocking newChunkedResponse(Status.OK, guessMimeType(file), FileInputStream(file))
             }
         }
 
         // Fetch via source with proper headers
         val source = sourceManager.get(sourceId) as? HttpSource
-            ?: return jsonResponse(Status.NOT_FOUND, """{"error":"source not found"}""")
+            ?: return@runBlocking jsonResponse(Status.NOT_FOUND, """{"error":"source not found"}""")
 
-        return try {
+        try {
             val page = Page(0, imageUrl = imageUrl)
             val okHttpResponse = source.getImage(page)
             val bytes = okHttpResponse.body?.bytes()
-                ?: return jsonResponse(Status.INTERNAL_ERROR, """{"error":"empty response from source"}""")
+                ?: return@runBlocking jsonResponse(Status.INTERNAL_ERROR, """{"error":"empty response from source"}""")
 
             // Write to cache manually (body already consumed)
             try {
