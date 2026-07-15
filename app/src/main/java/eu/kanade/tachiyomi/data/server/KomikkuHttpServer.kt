@@ -123,14 +123,18 @@ class KomikkuHttpServer(
         val customCover = coverCache.getCustomCoverFile(mangaId)
         if (customCover.exists()) {
             return@runBlocking newChunkedResponse(
-                Status.OK, guessMimeType(customCover), FileInputStream(customCover),
+                Status.OK,
+                guessMimeType(customCover),
+                FileInputStream(customCover),
             )
         }
 
         val coverFile = coverCache.getCoverFile(manga.thumbnailUrl)
         if (coverFile != null && coverFile.exists()) {
             return@runBlocking newChunkedResponse(
-                Status.OK, guessMimeType(coverFile), FileInputStream(coverFile),
+                Status.OK,
+                guessMimeType(coverFile),
+                FileInputStream(coverFile),
             )
         }
 
