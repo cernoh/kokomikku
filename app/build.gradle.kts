@@ -252,6 +252,7 @@ dependencies {
     implementation(libs.bundles.okhttp)
     implementation(libs.okio)
     implementation(libs.conscrypt.android) // TLS 1.3 support for Android < 10
+    implementation(libs.nanohttpd) // Embedded HTTP server for KOReader
 
     // Data serialization (JSON, protobuf, xml)
     implementation(kotlinx.bundles.serialization)

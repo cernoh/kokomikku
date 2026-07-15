@@ -55,6 +55,8 @@ class ConnectionsPreferences(
 
     fun discordAccounts() = preferenceStore.getString("discord_accounts", "")
 
+    fun enableHttpServer() = preferenceStore.getBoolean("pref_enable_http_server", false)
+
     companion object {
 
         fun connectionsUsername(syncId: Long) = "pref_connections_username_$syncId"

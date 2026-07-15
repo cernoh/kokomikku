@@ -238,4 +238,11 @@
     <string name="pref_discord_show_download_button_summary">Displays a button to download the app</string>
     <string name="pref_discord_show_discord_button">Show Discord Button</string>
     <string name="pref_discord_show_discord_button_summary">Displays a button to join the Discord server</string>
+
+    <!-- HTTP Server -->
+    <string name="http_server">HTTP Server</string>
+    <string name="http_server_enable">Enable HTTP Server</string>
+    <string name="http_server_enable_summary">Allow KOReader to browse your library over WiFi</string>
+    <string name="http_server_channel_name">HTTP Server</string>
+    <string name="http_server_running">HTTP Server Running</string>
 </resources>

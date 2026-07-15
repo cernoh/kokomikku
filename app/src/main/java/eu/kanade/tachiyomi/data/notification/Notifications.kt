@@ -84,6 +84,13 @@ object Notifications {
     // <-- AM (DISCORD)
 
     /**
+     * Notification channel used for HTTP server
+     */
+    const val CHANNEL_HTTP_SERVER = "http_server_channel"
+    const val ID_HTTP_SERVER = -1801
+    // <-- AM (DISCORD)
+
+    /**
      * Notification channel and ids used for app and extension updates.
      */
     private const val GROUP_APK_UPDATES = "group_apk_updates"
@@ -202,6 +209,9 @@ object Notifications {
                     setName(context.getString(R.string.pref_discord_rpc))
                 },
                 // <-- AM (DISCORD)
+                buildNotificationChannel(CHANNEL_HTTP_SERVER, IMPORTANCE_LOW) {
+                    setName(context.getString(R.string.http_server_channel_name))
+                },
                 // SY -->
                 buildNotificationChannel(CHANNEL_LIBRARY_EHENTAI, IMPORTANCE_LOW) {
                     setName("EHentai")

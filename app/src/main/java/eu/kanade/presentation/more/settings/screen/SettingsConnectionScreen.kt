@@ -44,6 +44,8 @@ import dev.icerock.moko.resources.StringResource
 import eu.kanade.presentation.more.settings.Preference
 import eu.kanade.tachiyomi.data.connections.ConnectionsManager
 import eu.kanade.tachiyomi.data.connections.ConnectionsService
+import eu.kanade.tachiyomi.data.server.KomikkuHttpService
+import eu.kanade.domain.connections.service.ConnectionsPreferences
 import eu.kanade.tachiyomi.ui.setting.connections.DiscordLoginScreen
 import eu.kanade.tachiyomi.util.system.toast
 import kotlinx.collections.immutable.persistentListOf
@@ -66,7 +68,9 @@ object SettingsConnectionScreen : SearchableSettings {
     @Composable
     override fun getPreferences(): List<Preference> {
         val navigator = LocalNavigator.currentOrThrow
+        val context = LocalContext.current
         val connectionsManager = remember { Injekt.get<ConnectionsManager>() }
+        val connectionsPreferences = remember { Injekt.get<ConnectionsPreferences>() }
 
         var dialog by remember { mutableStateOf<Any?>(null) }
         dialog?.run {
@@ -98,6 +102,24 @@ object SettingsConnectionScreen : SearchableSettings {
                     ),
                     Preference.PreferenceItem.InfoPreference(
                         stringResource(KMR.strings.connections_discord_info, stringResource(MR.strings.app_name)),
+                    ),
+                ),
+            ),
+            Preference.PreferenceGroup(
+                title = stringResource(KMR.strings.http_server),
+                preferenceItems = persistentListOf(
+                    Preference.PreferenceItem.SwitchPreference(
+                        preference = connectionsPreferences.enableHttpServer(),
+                        title = stringResource(KMR.strings.http_server_enable),
+                        subtitle = stringResource(KMR.strings.http_server_enable_summary),
+                        onValueChanged = { enabled ->
+                            if (enabled) {
+                                KomikkuHttpService.startService(context)
+                            } else {
+                                KomikkuHttpService.stopService(context)
+                            }
+                            true
+                        },
                     ),
                 ),
             ),
