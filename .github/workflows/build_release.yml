@@ -89,6 +89,9 @@ jobs:
     runs-on: 'ubuntu-24.04'
     needs: prepare-build
     if: startsWith(github.ref, 'refs/tags/v')
+    env:
+      GOOGLE_SERVICES_JSON: ${{ secrets.GOOGLE_SERVICES_JSON }}
+      GOOGLE_CLIENT_SECRETS_JSON: ${{ secrets.GOOGLE_CLIENT_SECRETS_JSON }}
     steps:
       - name: Clone Repository (${{ needs.prepare-build.outputs.VERSION_TAG }})
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
@@ -150,6 +153,8 @@ jobs:
     needs:
       - prepare-build
       - build-app
+    env:
+      SIGNING_KEY: ${{ secrets.SIGNING_KEY }}
     steps:
       - name: Download artifacts
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
