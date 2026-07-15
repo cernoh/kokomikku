@@ -188,17 +188,17 @@ jobs:
             SUFFIX="-unsigned"
           fi
 
-          mv "$DIR/app-universal-release${SUFFIX}.apk" "Komikku-${TAG}.apk"
-          mv "$DIR/app-arm64-v8a-release${SUFFIX}.apk" "Komikku-arm64-v8a-${TAG}.apk"
-          mv "$DIR/app-armeabi-v7a-release${SUFFIX}.apk" "Komikku-armeabi-v7a-${TAG}.apk"
-          mv "$DIR/app-x86-release${SUFFIX}.apk" "Komikku-x86-${TAG}.apk"
-          mv "$DIR/app-x86_64-release${SUFFIX}.apk" "Komikku-x86_64-${TAG}.apk"
+          mv "$DIR/app-universal-release${SUFFIX}.apk" "kokomikku-${TAG}.apk"
+          mv "$DIR/app-arm64-v8a-release${SUFFIX}.apk" "kokomikku-arm64-v8a-${TAG}.apk"
+          mv "$DIR/app-armeabi-v7a-release${SUFFIX}.apk" "kokomikku-armeabi-v7a-${TAG}.apk"
+          mv "$DIR/app-x86-release${SUFFIX}.apk" "kokomikku-x86-${TAG}.apk"
+          mv "$DIR/app-x86_64-release${SUFFIX}.apk" "kokomikku-x86_64-${TAG}.apk"
 
       - name: Create release
         uses: softprops/action-gh-release@718ea10b132b3b2eba29c1007bb80653f286566b # v3.0.1
         with:
           tag_name: ${{ needs.prepare-build.outputs.VERSION_TAG }}
-          name: Komikku ${{ needs.prepare-build.outputs.VERSION_TAG }}
+          name: kokomikku ${{ needs.prepare-build.outputs.VERSION_TAG }}
           body: |
             [![GitHub downloads](https://img.shields.io/github/downloads/${{ github.repository }}/${{ needs.prepare-build.outputs.VERSION_TAG }}/total?label=Downloaded&labelColor=27303D&color=0D1117&logo=github&logoColor=FFFFFF&style=flat)](https://github.com/${{ github.repository }}/releases/${{ needs.prepare-build.outputs.VERSION_TAG }})
             #### What's Changed
@@ -217,13 +217,13 @@ jobs:
             <!-->
             > [!TIP]
             >
-            > ### If you are unsure which version to download then go with `Komikku-${{ needs.prepare-build.outputs.VERSION_TAG }}.apk`
+            > ### If you are unsure which version to download then go with `kokomikku-${{ needs.prepare-build.outputs.VERSION_TAG }}.apk`
           files: |
-            Komikku-${{ needs.prepare-build.outputs.VERSION_TAG }}.apk
-            Komikku-arm64-v8a-${{ needs.prepare-build.outputs.VERSION_TAG }}.apk
-            Komikku-armeabi-v7a-${{ needs.prepare-build.outputs.VERSION_TAG }}.apk
-            Komikku-x86-${{ needs.prepare-build.outputs.VERSION_TAG }}.apk
-            Komikku-x86_64-${{ needs.prepare-build.outputs.VERSION_TAG }}.apk
+            kokomikku-${{ needs.prepare-build.outputs.VERSION_TAG }}.apk
+            kokomikku-arm64-v8a-${{ needs.prepare-build.outputs.VERSION_TAG }}.apk
+            kokomikku-armeabi-v7a-${{ needs.prepare-build.outputs.VERSION_TAG }}.apk
+            kokomikku-x86-${{ needs.prepare-build.outputs.VERSION_TAG }}.apk
+            kokomikku-x86_64-${{ needs.prepare-build.outputs.VERSION_TAG }}.apk
           draft: true
           prerelease: false
           token: ${{ secrets.GITHUB_TOKEN }}
