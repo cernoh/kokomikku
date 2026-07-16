@@ -25,7 +25,10 @@ import uy.kohesive.injekt.api.get
 import java.io.ByteArrayInputStream
 import java.io.File
 import java.io.FileInputStream
+import java.text.SimpleDateFormat
 import java.util.Date
+import java.util.Locale
+import java.util.concurrent.ConcurrentLinkedDeque
 
 /**
  * Embedded HTTP server for KOReader communication over WiFi.
@@ -64,10 +67,12 @@ class KomikkuHttpServer(
     override fun serve(session: IHTTPSession): Response {
         val uri = session.uri
         val method = session.method
+        val startTime = System.currentTimeMillis()
 
-        return try {
+        val response = try {
             when {
                 uri == "/" -> jsonResponse(Status.OK, """{"status":"ok","name":"komikku"}""")
+                uri == "/logs" -> serveLogs()
 
                 uri == "/api/v1/library" -> serveLibrary()
                 uri.matches(MANGA_ID_REGEX) -> serveMangaDetails(uri)
@@ -88,6 +93,9 @@ class KomikkuHttpServer(
                 """{"error":"${e.message?.replace("\"", "\\\"") ?: "internal error"}"}""",
             )
         }
+
+        logRequest(method, uri, response.status, System.currentTimeMillis() - startTime)
+        return response
     }
 
     // --- Library ---
@@ -308,15 +316,82 @@ class KomikkuHttpServer(
         }
     }
 
+    // --- Request logging ---
+
+    private fun logRequest(method: Method, uri: String, status: Response.IStatus, durationMs: Long) {
+        val entry = LogEntry(
+            timestamp = System.currentTimeMillis(),
+            method = method.name(),
+            uri = uri,
+            status = status.requestStatus,
+            durationMs = durationMs,
+        )
+        requestLog.addLast(entry)
+        while (requestLog.size > MAX_LOG_ENTRIES) {
+            requestLog.pollFirst()
+        }
+    }
+
+    private fun serveLogs(): Response {
+        val dateFormat = SimpleDateFormat("HH:mm:ss", Locale.getDefault())
+        val rows = requestLog.reversed().joinToString("\n") { entry ->
+            val time = dateFormat.format(Date(entry.timestamp))
+            val statusColor = when {
+                entry.status in 200..299 -> "#4caf50"
+                entry.status in 300..399 -> "#ff9800"
+                entry.status in 400..599 -> "#f44336"
+                else -> "#9e9e9e"
+            }
+            "<tr>" +
+                "<td style='color:#888;font-family:monospace'>$time</td>" +
+                "<td style='font-family:monospace'>${entry.method}</td>" +
+                "<td style='font-family:monospace;word-break:break-all'>${entry.uri}</td>" +
+                "<td style='color:$statusColor;font-family:monospace;font-weight:bold'>${entry.status}</td>" +
+                "<td style='color:#888;font-family:monospace'>${entry.durationMs}ms</td>" +
+                "</tr>"
+        }
+
+        val html = """
+            <!DOCTYPE html>
+            <html><head><meta charset="utf-8"><title>Komikku Server Logs</title>
+            <meta name="viewport" content="width=device-width,initial-scale=1">
+            <meta http-equiv="refresh" content="5">
+            <style>
+                body{background:#121212;color:#eee;font-family:system-ui;padding:12px;margin:0}
+                h2{margin:0 0 8px;font-size:16px;color:#888}
+                table{width:100%;border-collapse:collapse;font-size:13px}
+                th{text-align:left;color:#666;border-bottom:1px solid #333;padding:4px 6px}
+                td{padding:3px 6px;border-bottom:1px solid #1e1e1e}
+            </style></head><body>
+            <h2>Komikku HTTP Server — Recent Requests</h2>
+            <table>
+            <tr><th>Time</th><th>Method</th><th>URI</th><th>Status</th><th>Duration</th></tr>
+            $rows
+            </table></body></html>
+        """.trimIndent()
+
+        return newFixedLengthResponse(Status.OK, "text/html", html)
+    }
+
     // --- Regex patterns for routing ---
 
     companion object {
         private const val TAG = "KomikkuHttpServer"
+        private const val MAX_LOG_ENTRIES = 200
+        private val requestLog = ConcurrentLinkedDeque<LogEntry>()
         private val MANGA_ID_REGEX = Regex("/api/v1/manga/\\d+")
         private val MANGA_CHAPTERS_REGEX = Regex("/api/v1/manga/\\d+/chapters")
         private val MANGA_COVER_REGEX = Regex("/api/v1/manga/\\d+/cover")
         private val CHAPTER_PAGES_REGEX = Regex("/api/v1/chapter/\\d+/pages")
         private val CHAPTER_PROGRESS_REGEX = Regex("/api/v1/chapter/\\d+/progress")
+
+        data class LogEntry(
+            val timestamp: Long,
+            val method: String,
+            val uri: String,
+            val status: Int,
+            val durationMs: Long,
+        )
     }
 
     // --- Response models ---

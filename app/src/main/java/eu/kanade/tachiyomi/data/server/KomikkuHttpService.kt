@@ -53,6 +53,7 @@ class KomikkuHttpService : Service() {
             server?.start()
 
             val ipAddress = getLocalIpAddress()
+            currentIpAddress = ipAddress
             Timber.tag(TAG).i("HTTP server started on $ipAddress:$SERVER_PORT")
 
             // Enter foreground with notification
@@ -67,6 +68,7 @@ class KomikkuHttpService : Service() {
         try {
             server?.stop()
             server = null
+            currentIpAddress = null
             NotificationReceiver.dismissNotification(this, Notifications.ID_HTTP_SERVER)
             Timber.tag(TAG).i("HTTP server stopped")
         } catch (e: Exception) {
@@ -116,7 +118,9 @@ class KomikkuHttpService : Service() {
 
     companion object {
         private const val TAG = "KomikkuHttpService"
-        private const val SERVER_PORT = 8080
+        const val SERVER_PORT = 8080
+        var currentIpAddress: String? = null
+            private set
         const val ACTION_START = "eu.kanade.tachiyomi.server.ACTION_START"
         const val ACTION_STOP = "eu.kanade.tachiyomi.server.ACTION_STOP"
 

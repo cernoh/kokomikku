@@ -31,6 +31,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -86,6 +87,8 @@ object SettingsConnectionScreen : SearchableSettings {
         }
 
         val isLoggedIn by connectionsManager.discord.isLoggedInFlow.collectAsState(connectionsManager.discord.isLogged)
+        val httpServerEnabled by connectionsPreferences.enableHttpServer().collectAsState()
+        val uriHandler = LocalUriHandler.current
 
         return listOf(
             Preference.PreferenceGroup(
@@ -119,6 +122,17 @@ object SettingsConnectionScreen : SearchableSettings {
                                 KomikkuHttpService.stopService(context)
                             }
                             true
+                        },
+                    ),
+                    Preference.PreferenceItem.TextPreference(
+                        title = stringResource(KMR.strings.http_server_view_logs),
+                        subtitle = KomikkuHttpService.currentIpAddress
+                            ?.let { "http://$it:${KomikkuHttpService.SERVER_PORT}/logs" },
+                        enabled = httpServerEnabled && KomikkuHttpService.currentIpAddress != null,
+                        onClick = {
+                            KomikkuHttpService.currentIpAddress?.let { ip ->
+                                uriHandler.openUri("http://$ip:${KomikkuHttpService.SERVER_PORT}/logs")
+                            }
                         },
                     ),
                 ),
