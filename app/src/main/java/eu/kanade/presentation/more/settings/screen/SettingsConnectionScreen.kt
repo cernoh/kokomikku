@@ -87,7 +87,7 @@ object SettingsConnectionScreen : SearchableSettings {
         }
 
         val isLoggedIn by connectionsManager.discord.isLoggedInFlow.collectAsState(connectionsManager.discord.isLogged)
-        val httpServerEnabled by connectionsPreferences.enableHttpServer().collectAsState()
+        val httpServerEnabled by connectionsPreferences.enableHttpServer().changes().collectAsState(initial = connectionsPreferences.enableHttpServer().get())
         val uriHandler = LocalUriHandler.current
 
         return listOf(

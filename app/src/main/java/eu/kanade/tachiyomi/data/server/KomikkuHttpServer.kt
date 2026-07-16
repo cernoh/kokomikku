@@ -321,7 +321,7 @@ class KomikkuHttpServer(
     private fun logRequest(method: Method, uri: String, status: Response.IStatus, durationMs: Long) {
         val entry = LogEntry(
             timestamp = System.currentTimeMillis(),
-            method = method.name(),
+            method = method.name,
             uri = uri,
             status = status.requestStatus,
             durationMs = durationMs,
