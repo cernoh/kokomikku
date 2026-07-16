@@ -31,7 +31,7 @@ Three source lineages coexist under `app/src/main/java/`:
 
 ## Build Variants
 
-`debug`, `release`, `preview` (beta), `foss`, `benchmark`, `releaseTest`. Application ID: `app.komikku`.
+`debug`, `release`, `preview` (beta), `foss`, `benchmark`, `releaseTest`. Application ID: `app.kokomikku`.
 
 ## Conventions
 
